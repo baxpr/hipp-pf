@@ -66,8 +66,6 @@ for h in lh rh; do
     done
 done
 
-exit 0
-
 # Compute atlas computation mask volumes and HPF
 for w in affine warp; do
     for h in lh rh; do
@@ -84,26 +82,4 @@ for w in affine warp; do
         echo "${w} ${h} ${hpf}"
     done
 done
-
-
-fsleyes t1 lh.nwHarvardOxford-hipp-p${mthr} lh.hippo lh.hippo-masked
-
-#fsleyes "${FSLDIR}"/data/standard/MNI152_T1_2mm t1 rt1 wt1
-
-# Affine transform atlas to subject space
-
-# Get affine of hipp to t1
-
-
-# Extract hippocampus ROIs
-#fslroi "${FSLDIR}"/data/atlases/HarvardOxford/HarvardOxford-sub-prob-1mm hippL 8 1
-#fslroi "${FSLDIR}"/data/atlases/HarvardOxford/HarvardOxford-sub-prob-1mm hippR 18 1
-#fslmaths hippL -add hippR -thr 25 -bin hipp_mask
-
-# Smaller volume to speed up processing
-fslroi "${FSLDIR}"/data/standard/MNI152_T1_0.5mm MNI152_T1_0.5mm_hipp 80 190 140 150 55 130
-
-# Subject warp
-applywarp --ref=MNI152_T1_0.5mm_hipp --in=t1 --warp=t1_warpcoef --out=wt1_hipp
-
 
