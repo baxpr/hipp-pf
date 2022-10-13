@@ -27,17 +27,18 @@ flirt -in "${FSLDIR}"/data/atlases/HarvardOxford/HarvardOxford-sub-prob-1mm \
 
 # Resample subject space HO images to the hi-res hippocampal FOV
 for h in lh rh; do
+    mri_convert ${h}.hippoAmygLabels-T1.v21.mgz ${h}.hippoAmygLabels-T1.v21.nii.gz
     for w in affine warp; do
         flirt -in HarvardOxford-sub-prob-1mm-${w} -ref ${h}.hippoAmygLabels-T1.v21 \
-            -out ${h}.nwHarvardOxford-sub-prob-1mm-${w} -usesqform -applyxfm
+            -out ${h}.HarvardOxford-sub-prob-1mm-${w} -usesqform -applyxfm
     done
 done
 
 # Get HPF computation masks in hi res subject space. Vol 8 is left hipp, 18 is right
 mthr=25
 for h in lh rh; do
-    if [[ ${h} == lh]]; then v=8; fi
-    if [[ ${h} == rh]]; then v=18; fi
+    if [[ ${h} == lh ]]; then v=8; fi
+    if [[ ${h} == rh ]]; then v=18; fi
     for w in affine warp; do
         fslroi ${h}.HarvardOxford-sub-prob-1mm-${w} ${h}.HarvardOxford-hipp-${w} ${v} 1
         fslmaths ${h}.HarvardOxford-hipp-${w} -thr ${mthr} -bin ${h}.HarvardOxford-hipp-${w}-p${mthr}
