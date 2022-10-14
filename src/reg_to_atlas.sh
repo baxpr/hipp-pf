@@ -132,6 +132,7 @@ for h in lh rh; do
 done
 
 # Compute atlas computation mask volumes and HPF
+#   hippocampus_hpf.csv    HPF values in CSV format
 for h in lh rh; do
     for w in affine warp; do
         vstr=$(fslstats ${h}.HOhipp-mask-${w} -V)
@@ -142,17 +143,24 @@ for h in lh rh; do
         varr=(${vstr// / })
         vol_hippgm=${varr[1]}
 
-        hpf=$(echo "scale=2; 100 * ${vol_hippgm} / ${vol_HOhipp}" | bc)
-
-        echo "${w} ${h} ${hpf}"
+        eval hpf_${h}_${w}=$(echo "scale=2; 100 * ${vol_hippgm} / ${vol_HOhipp}" | bc)
     done
 done
 
+cat > hippocampus_hpf.csv <<HERE
+Hemisphere,Transform,HPF
+left,affine,${hpf_lh_affine}
+right,affine,${hpf_rh_affine}
+left,warp,${hpf_lh_warp}
+right,warp,${hpf_rh_warp}
+HERE
 
 exit 0
 
 
-#################################################
+
+########################################################################
+# scritch-scratch for hippocampus-specific affine transforms below here
 
 # Hippocampus-specific affine reg
 HO="${FSLDIR}/data/atlases/HarvardOxford/HarvardOxford-sub-prob-2mm"
