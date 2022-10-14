@@ -8,6 +8,8 @@
 #   t1.nii.gz                           Subject T1
 #   lh.hippoAmygLabels-T1.v21.mgz       Freesurfer hippocampal module labels
 #   rh.hippoAmygLabels-T1.v21.mgz
+#   hipposubfields.lh.T1.v21.stats      FS hippocampal volumes
+#   hipposubfields.rh.T1.v21.stats
 
 # Affine registration of T1 to atlas
 #   wt1-affine.nii.gz       T1 affine transformed to atlas space
@@ -132,7 +134,6 @@ for h in lh rh; do
 done
 
 # Compute atlas computation mask volumes and HPF
-#   hippocampus_hpf.csv    HPF values in CSV format
 for h in lh rh; do
     for w in affine warp; do
         vstr=$(fslstats ${h}.HOhipp-mask-${w} -V)
@@ -147,12 +148,23 @@ for h in lh rh; do
     done
 done
 
+# Snag volume measurements from FS for convenience
+for h in lh rh; do
+    vstr=$(grep Whole_hippocampal_body hipposubfields.${h}.T1.v21.stats)
+    varr=(${vstr// / })
+    eval whb_${h}=${varr[3]}
+
+    vstr=$(grep Whole_hippocampal_head hipposubfields.${h}.T1.v21.stats)
+    varr=(${vstr// / })
+    eval whh_${h}=${varr[3]}
+done
+
+# Create output csv
+#   hippocampus_hpf.csv    HPF values in CSV format
 cat > hippocampus_hpf.csv <<HERE
-Hemisphere,Transform,HPF
-left,affine,${hpf_lh_affine}
-right,affine,${hpf_rh_affine}
-left,warp,${hpf_lh_warp}
-right,warp,${hpf_rh_warp}
+Hemisphere,HPF_Affine,HPF_Warp,Whole_hippocampal_body,Whole_hippocampal_head
+left,${hpf_lh_affine},${hpf_lh_warp},${whb_lh},${whh_lh}
+right,${hpf_rh_affine},${hpf_rh_warp},${whb_rh},${whh_rh}
 HERE
 
 exit 0
