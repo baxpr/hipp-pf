@@ -28,7 +28,7 @@ fnirt \
     --in=t1 \
     --config=T1_2_MNI152_2mm \
     --aff=t1-to-mni-affine.mat \
-    --refmask "${FSLDIR}"/data/standard/MNI152_T1_2mm_brain_mask_dil \
+    --refmask="${FSLDIR}"/data/standard/MNI152_T1_2mm_brain_mask_dil \
     --iout=wt1-warp \
     --cout=t1-to-mni-warpcoef
 
