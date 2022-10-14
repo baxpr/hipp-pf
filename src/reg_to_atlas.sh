@@ -4,6 +4,8 @@
 # https://www.ncbi.nlm.nih.gov/pmc/articles/PMC7028613/
 # Ardekani BA, Hadid SA, Blessing E, Bachman AH. Sexual Dimorphism and Hemispheric Asymmetry of Hippocampal Volumetric Integrity in Normal Aging and Alzheimer Disease. AJNR Am J Neuroradiol. 2019 Feb;40(2):276-282. doi: 10.3174/ajnr.A5943. Epub 2019 Jan 17. PMID: 30655257; PMCID: PMC7028613.
 
+# FIXME Use FS brain mask to get brain-specific transforms
+
 # Inputs
 #   t1.nii.gz                           Subject T1
 #   lh.hippoAmygLabels-T1.v21.mgz       Freesurfer hippocampal module labels
@@ -15,6 +17,7 @@
 flirt \
     -in t1 \
     -ref "${FSLDIR}"/data/standard/MNI152_T1_2mm \
+    -refweight "${FSLDIR}"/data/standard/MNI152_T1_2mm_brain_mask_dil \
     -usesqform \
     -out wt1-affine \
     -omat t1-to-mni-affine.mat
@@ -22,10 +25,12 @@ flirt \
 # Further nonlinear registration to atlas with default T1 registration algo
 #   wt1-warp.nii.gz              T1 warped to atlas space
 #   t1-to-mni-warpcoef.nii.gz    FSL format deformation field
+#   t1_to_MNI152_T1_2mm.log      Registration log
 fnirt \
     --in=t1 \
     --config=T1_2_MNI152_2mm \
     --aff=t1-to-mni-affine.mat \
+    --refmask "${FSLDIR}"/data/standard/MNI152_T1_2mm_brain_mask_dil \
     --iout=wt1-warp \
     --cout=t1-to-mni-warpcoef
 
