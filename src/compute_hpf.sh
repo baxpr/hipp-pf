@@ -85,7 +85,7 @@ done
 
 # Get atlas hippocampus masks into hi-res subject space. These are the total
 # volume considered when computing HPF. Volumes 8/18 are L/R hippocampus.
-# mthr is the probability to threshold at to create the masks.
+# pthresh is the probability to threshold at to create the masks.
 #   lh.HOhipp-warp.nii.gz          HO hipp prob maps in subject space
 #   rh.HOhipp-warp.nii.gz
 #   lh.HOhipp-affine.nii.gz
@@ -94,13 +94,12 @@ done
 #   rh.HOhipp-mask-warp.nii.gz
 #   lh.HOhipp-mask-affine.nii.gz
 #   rh.HOhipp-mask-affine.nii.gz
-mthr=25
 for h in lh rh; do
     if [[ ${h} == lh ]]; then v=8; fi
     if [[ ${h} == rh ]]; then v=18; fi
     for w in affine warp; do
         fslroi ${h}.HOsub-${w} ${h}.HOhipp-${w} ${v} 1
-        fslmaths ${h}.HOhipp-${w} -thr ${mthr} -bin ${h}.HOhipp-mask-${w}
+        fslmaths ${h}.HOhipp-${w} -thr ${pthresh} -bin ${h}.HOhipp-mask-${w}
     done
 done
 
@@ -208,15 +207,15 @@ flirt -in HarvardOxford-sub-prob-1mm-${h}-haffine -ref ${h}.hippoAmygLabels-T1.v
     -out ${h}.HarvardOxford-sub-prob-1mm-${h}-haffine -usesqform -applyxfm
 
 fslroi ${h}.HarvardOxford-sub-prob-1mm-${h}-haffine ${h}.HarvardOxford-hipp-${h}-haffine ${v} 1
-fslmaths ${h}.HarvardOxford-hipp-${h}-haffine -thr ${mthr} -bin ${h}.HarvardOxford-hipp-${h}-haffine-p${mthr}
+fslmaths ${h}.HarvardOxford-hipp-${h}-haffine -thr ${pthresh} -bin ${h}.HarvardOxford-hipp-${h}-haffine-p${pthresh}
 
-fslmaths ${h}.hippo -mas ${h}.HarvardOxford-hipp-${h}-haffine-p${mthr} -bin ${h}.hippo-masked-${h}-haffine
+fslmaths ${h}.hippo -mas ${h}.HarvardOxford-hipp-${h}-haffine-p${pthresh} -bin ${h}.hippo-masked-${h}-haffine
 
 gthr=$(fslstats -K ${h}.hippo-masked-${h}-haffine ${h}.t1 -P ${prc})
-fslmaths ${h}.t1 -thr ${gthr} -mas ${h}.HarvardOxford-hipp-${h}-haffine-p${mthr} \
+fslmaths ${h}.t1 -thr ${gthr} -mas ${h}.HarvardOxford-hipp-${h}-haffine-p${pthresh} \
     -bin ${h}.fullhipp-masked-${h}-haffine
 
-vol0str=$(fslstats ${h}.HarvardOxford-hipp-${h}-haffine-p${mthr} -V)
+vol0str=$(fslstats ${h}.HarvardOxford-hipp-${h}-haffine-p${pthresh} -V)
 vol0arr=(${vol0str// / })
 vol0=${vol0arr[1]}
 
