@@ -148,7 +148,7 @@ for h in lh rh; do
     done
 done
 
-# Snag volume measurements from FS for convenience
+# Snag some volume measurements from FS for convenience
 for h in lh rh; do
     vstr=$(grep Whole_hippocampal_body hipposubfields.${h}.T1.v21.stats)
     varr=(${vstr// / })
@@ -160,7 +160,7 @@ for h in lh rh; do
 done
 
 # Create output csv
-#   hippocampus_hpf.csv    HPF values in CSV format
+#   hippocampus_hpf.csv    HPF values and FS vols in CSV format
 cat > hippocampus_hpf.csv <<HERE
 Hemisphere,HPF_Affine,HPF_Warp,Whole_hippocampal_body,Whole_hippocampal_head
 left,${hpf_lh_affine},${hpf_lh_warp},${whb_lh},${whh_lh}
