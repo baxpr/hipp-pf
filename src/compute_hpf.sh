@@ -4,12 +4,21 @@
 # https://www.ncbi.nlm.nih.gov/pmc/articles/PMC7028613/
 # Ardekani BA, Hadid SA, Blessing E, Bachman AH. Sexual Dimorphism and Hemispheric Asymmetry of Hippocampal Volumetric Integrity in Normal Aging and Alzheimer Disease. AJNR Am J Neuroradiol. 2019 Feb;40(2):276-282. doi: 10.3174/ajnr.A5943. Epub 2019 Jan 17. PMID: 30655257; PMCID: PMC7028613.
 
-# Inputs
+# Work in the output dir
+cd "${out_dir}"
+
+# Inputs - copy from input location, converting mgz
 #   t1.nii.gz                           Subject T1
 #   lh.hippoAmygLabels-T1.v21.mgz       Freesurfer hippocampal module labels
 #   rh.hippoAmygLabels-T1.v21.mgz
 #   hipposubfields.lh.T1.v21.stats      FS hippocampal volumes
 #   hipposubfields.rh.T1.v21.stats
+cp "${t1_niigz}" t1.nii.gz
+cp "${fs_subjdir}"/stats/hipposubfields.?h.T1.v21.stats .
+for h in lh rh; do
+    mri_convert "${fs_subjdir}/mri/${h}.hippoAmygLabels-T1.v21.mgz" \
+        ${h}.hippoAmygLabels-T1.v21.nii.gz
+done
 
 # Affine registration of T1 to atlas
 #   wt1-affine.nii.gz       T1 affine transformed to atlas space
@@ -64,7 +73,6 @@ applywarp \
 #   lh.HOsub-affine.nii.gz
 #   rh.HOsub-affine.nii.gz
 for h in lh rh; do
-    mri_convert ${h}.hippoAmygLabels-T1.v21.mgz ${h}.hippoAmygLabels-T1.v21.nii.gz
     for w in affine warp; do
         flirt \
             -in HOsub-${w} \
