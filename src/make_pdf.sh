@@ -1,5 +1,9 @@
 #!/usr/bin/env bash
 
+echo Making PDF
+
+cd "${out_dir}"
+
 # Hippocampus regions. Red=subject, blue=atlas
 for w in affine warp; do
     for h in lh rh; do
