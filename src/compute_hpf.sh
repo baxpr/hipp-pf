@@ -143,6 +143,7 @@ for h in lh rh; do
     flirt -in t1 -ref ${h}.hippoAmygLabels-T1.v21  -usesqform -applyxfm -out ${h}.t1
     for w in affine warp; do
         gthr=$(fslstats -K ${h}.hipp-HOmask-${w} ${h}.t1 -P ${prc})
+        echo "    ${h} ${w} threshold: ${gthr}"
         fslmaths ${h}.t1 -thr ${gthr} -mas ${h}.HOhipp-mask-${w} -bin ${h}.hipp-gm-${w}
     done
 done
