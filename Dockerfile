@@ -20,6 +20,7 @@ ENV XDG_RUNTIME_DIR=/tmp
 # Pipeline code
 COPY README.md /opt/hipp-pf/README.md
 COPY src /opt/hipp-pf/src
+ENV PATH=/opt/hipp-pf/src:${PATH}
 
 # Entrypoint
 ENTRYPOINT ["xwrapper.sh","pipeline.sh"]
