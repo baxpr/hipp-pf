@@ -1,7 +1,8 @@
 # https://github.com/baxpr/fsl-base
+# This base container has FSL and ImageMagick installed
 FROM baxterprogers/fsl-base:v6.0.5.2
 
-# Install Freesurfer. We just need mri_convert
+# Install Freesurfer bits. We just need mri_convert
 RUN wget -nv https://surfer.nmr.mgh.harvard.edu/pub/dist/freesurfer/7.2.0/freesurfer-linux-centos7_x86_64-7.2.0.tar.gz \
     -O /opt/freesurfer.tgz && \
     tar -zxf /opt/freesurfer.tgz -C /usr/local freesurfer/bin/mri_convert && \
@@ -15,10 +16,6 @@ ENV PATH=/usr/local/freesurfer/bin:${PATH}
 ENV FREESURFER_HOME=/usr/local/freesurfer
 ENV FSF_OUTPUT_FORMAT=nii.gz
 ENV XDG_RUNTIME_DIR=/tmp
-
-# We need to make the ImageMagick security policy more permissive 
-# to be able to write PDFs.
-COPY ImageMagick-policy.xml /etc/ImageMagick-6/policy.xml
 
 # Pipeline code
 COPY README.md /opt/hipp-pf/README.md
