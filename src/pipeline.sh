@@ -24,3 +24,5 @@ done
 compute_hpf.sh
 
 make_pdf.sh
+
+organize_outputs.sh
