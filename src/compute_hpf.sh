@@ -23,6 +23,7 @@ done
 # Affine registration of T1 to atlas
 #   wt1-affine.nii.gz       T1 affine transformed to atlas space
 #   t1-to-mni-affine.mat    FSL format affine transformation matrix
+echo Affine registration
 flirt \
     -in t1 \
     -ref "${FSLDIR}"/data/standard/MNI152_T1_2mm \
@@ -35,6 +36,7 @@ flirt \
 #   wt1-warp.nii.gz              T1 warped to atlas space
 #   t1-to-mni-warpcoef.nii.gz    FSL format deformation field
 #   t1_to_MNI152_T1_2mm.log      Registration log
+echo Nonlinear registration
 fnirt \
     --in=t1 \
     --config=T1_2_MNI152_2mm \
@@ -47,6 +49,7 @@ fnirt \
 # subject space to get generic ROIs
 #   mni-to-t1-affine.mat         Affine trans mtx from atlas to subject
 #   HOsub-affine.nii.gz          HO subc atlas in subject space (affine)
+echo Transform atlas ROIs
 HO="${FSLDIR}"/data/atlases/HarvardOxford/HarvardOxford-sub-prob-1mm.nii.gz
 convert_xfm -omat mni-to-t1-affine.mat -inverse t1-to-mni-affine.mat
 flirt \
@@ -72,6 +75,7 @@ applywarp \
 #   rh.HOsub-warp.nii.gz
 #   lh.HOsub-affine.nii.gz
 #   rh.HOsub-affine.nii.gz
+echo Resample to hi-res space 1
 for h in lh rh; do
     for w in affine warp; do
         flirt \
@@ -94,6 +98,7 @@ done
 #   rh.HOhipp-mask-warp.nii.gz
 #   lh.HOhipp-mask-affine.nii.gz
 #   rh.HOhipp-mask-affine.nii.gz
+echo Resample to hi-res space 2
 for h in lh rh; do
     if [[ ${h} == lh ]]; then v=8; fi
     if [[ ${h} == rh ]]; then v=18; fi
@@ -107,6 +112,7 @@ done
 # are the amygdala
 #   lh.hipp-mask.nii.gz   Subject hippocampus
 #   rh.hipp-mask.nii.gz
+echo Hippocampus mask
 for h in lh rh; do
     fslmaths ${h}.hippoAmygLabels-T1.v21 -uthr 1000 -bin ${h}.hipp-mask
 done
@@ -131,6 +137,7 @@ done
 #   rh.hipp-gm-warp.nii.gz
 #   lh.hipp-gm-affine.nii.gz
 #   rh.hipp-gm-affine.nii.gz
+echo Tissue threshold
 prc=1
 for h in lh rh; do
     flirt -in t1 -ref ${h}.hippoAmygLabels-T1.v21  -usesqform -applyxfm -out ${h}.t1
@@ -141,6 +148,7 @@ for h in lh rh; do
 done
 
 # Compute atlas computation mask volumes and HPF
+echo HPF computation
 for h in lh rh; do
     for w in affine warp; do
         vstr=$(fslstats ${h}.HOhipp-mask-${w} -V)
