@@ -48,7 +48,7 @@ mv \
 #   rh.hipp-HOmask-warp.nii.gz
 #   lh.hipp-HOmask-affine.nii.gz
 #   rh.hipp-HOmask-affine.nii.gz
-SUBJ_HIPP_MASKED
+mkdir SUBJ_HIPP_MASKED
 mv \
     lh.hipp-HOmask-warp.nii.gz \
     rh.hipp-HOmask-warp.nii.gz \
