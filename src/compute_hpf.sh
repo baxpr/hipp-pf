@@ -13,7 +13,7 @@ cd "${out_dir}"
 #   rh.hippoAmygLabels-T1.v21.mgz
 #   hipposubfields.lh.T1.v21.stats      FS hippocampal volumes
 #   hipposubfields.rh.T1.v21.stats
-cp "${t1_niigz}" t1.nii.gz
+fslreorient2std "${t1_niigz}" t1
 cp "${fs_subjdir}"/stats/hipposubfields.?h.T1.v21.stats .
 for h in lh rh; do
     mri_convert "${fs_subjdir}/mri/${h}.hippoAmygLabels-T1.v21.mgz" \
@@ -142,10 +142,11 @@ prc=1
 for h in lh rh; do
     flirt -in t1 -ref ${h}.hippoAmygLabels-T1.v21 -usesqform -applyxfm -out ${h}.t1
     for w in affine warp; do
-        ls -lt
-        echo "fslstats -K ${h}.hipp-HOmask-${w} ${h}.t1 -P ${prc}"
-        fslstats -K ${h}.hipp-HOmask-${w} ${h}.t1 -P ${prc}
         gthr=$(fslstats -K ${h}.hipp-HOmask-${w} ${h}.t1 -P ${prc})
+        if [[ -z "${gthr}" ]]; then
+            echo Failed to get ROI intensity values
+            exit 1
+        fi
         echo "    ${h} ${w} threshold: ${gthr}"
         fslmaths ${h}.t1 -thr ${gthr} -mas ${h}.HOhipp-mask-${w} -bin ${h}.hipp-gm-${w}
     done
