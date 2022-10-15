@@ -1,10 +1,5 @@
 #!/usr/bin/env bash
 
-# For left and right hipp
-# Get COM
-# Show affine and warp outlines on subj T1
-# Show subject hipp and subject GM
-
 # Hippocampus regions. Red=subject, blue=atlas
 for w in affine warp; do
     for h in lh rh; do
@@ -31,30 +26,39 @@ for w in affine warp; do
     done
 done
 
-
-
 # Combine into single PDF
 montage \
     -mode concatenate \
     lh-hipp-affine.png rh-hipp-affine.png \
     lh-gm-affine.png rh-gm-affine.png \
-    -tile 2x2 -quality 100 -background black -gravity center \
+    -trim -tile 2x2 -quality 100 -background black -gravity center \
     -border 20 -bordercolor black page-affine.png
 
 montage \
     -mode concatenate \
     lh-hipp-warp.png rh-hipp-warp.png \
     lh-gm-warp.png rh-gm-warp.png \
-    -tile 2x2 -quality 100 -background black -gravity center \
+    -trim -tile 2x2 -quality 100 -background black -gravity center \
     -border 20 -bordercolor black page-warp.png
 
-
-# FIXME we are here
+# 8.5 x 11 in is 2550x3300 at 300 dpi
 convert \
--size 2600x3365 xc:white \
--gravity center \( page1.png -resize 2400x \) -composite \
--gravity North -pointsize 48 -annotate +0+100 \
-"PMAT ROIs in atlas space" \
--gravity SouthEast -pointsize 48 -annotate +100+100 "$(date)" \
--gravity NorthWest -pointsize 48 -annotate +100+200 "${info_string}" \
-makerois-PMAT.pdf
+    -size 2550x3300 xc:white \
+    -gravity center \( page-affine.png -resize 2200x2200 \) -composite \
+    -gravity North -pointsize 48 -annotate +0+300 \
+        "Hippocampus parenchymal fraction, affine transform" \
+    -gravity South -pointsize 48 -annotate +0+350 \
+        "Blue: Atlas\nTop red: Subject hippocampus\nBottom red: Subject non-CSF" \
+    page-affine.pdf
+
+convert \
+    -size 2550x3300 xc:white \
+    -gravity center \( page-warp.png -resize 2200x2200 \) -composite \
+        -gravity North -pointsize 48 -annotate +0+300 \
+            "Hippocampus parenchymal fraction, warp transform" \
+        -gravity South -pointsize 48 -annotate +0+350 \
+            "Blue: Atlas\nTop red: Subject hippocampus\nBottom red: Subject non-CSF" \
+    page-warp.pdf
+
+convert page-warp.pdf page-affine.pdf hipp-pf.pdf
+
