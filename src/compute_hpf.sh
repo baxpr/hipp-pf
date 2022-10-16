@@ -7,127 +7,13 @@
 # Work in the output dir
 cd "${out_dir}"
 
-# Inputs - copy from input location, converting mgz
-#   t1.nii.gz                           Subject T1
-#   lh.hippoAmygLabels-T1.v21.mgz       Freesurfer hippocampal module labels
-#   rh.hippoAmygLabels-T1.v21.mgz
-#   hipposubfields.lh.T1.v21.stats      FS hippocampal volumes
-#   hipposubfields.rh.T1.v21.stats
-#fslreorient2std "${t1_niigz}" t1
-fslreorient2std "${t1_niigz}" t1.nii.gz
-cp "${fs_subjdir}"/stats/hipposubfields.?h.T1.v21.stats .
-for h in lh rh; do
-    mri_convert "${fs_subjdir}/mri/${h}.hippoAmygLabels-T1.v21.mgz" \
-        ${h}.hippoAmygLabels-T1.v21.nii.gz
-done
-mri_convert "${fs_subjdir}/mri/brainmask.mgz" brainmask.nii.gz
+prepfiles.sh
 
-# Convert FS brainmask for FSL
-fslmaths brainmask -bin -dilM -dilM brainmask_dil
-flirt \
-    -in brainmask_dil \
-    -ref t1 \
-    -usesqform \
-    -applyxfm \
-    -out rbrainmask_dil 
+registrations.sh
 
-# Affine registration of T1 to atlas
-#   wt1-affine.nii.gz       T1 affine transformed to atlas space
-#   t1-to-mni-affine.mat    FSL format affine transformation matrix
-echo Affine registration
-flirt \
-    -in t1 \
-    -ref "${FSLDIR}"/data/standard/MNI152_T1_2mm \
-    -inweight rbrainmask_dil \
-    -refweight "${FSLDIR}"/data/standard/MNI152_T1_2mm_brain_mask_dil \
-    -usesqform \
-    -out wt1-affine \
-    -omat t1-to-mni-affine.mat
+transforms.sh
 
-# Further nonlinear registration to atlas with default T1 registration algo
-#   wt1-warp.nii.gz              T1 warped to atlas space
-#   t1-to-mni-warpcoef.nii.gz    FSL format deformation field
-#   t1_to_MNI152_T1_2mm.log      Registration log
-echo Nonlinear registration
-fnirt \
-    --in=t1 \
-    --config=T1_2_MNI152_2mm \
-    --aff=t1-to-mni-affine.mat \
-    --refmask="${FSLDIR}"/data/standard/MNI152_T1_2mm_brain_mask_dil \
-    --iout=wt1-warp \
-    --cout=t1-to-mni-warpcoef
-
-# Affine transform of Harvard-Oxford subcortical probabalistic atlas to 
-# subject space to get generic ROIs
-#   mni-to-t1-affine.mat         Affine trans mtx from atlas to subject
-#   HOsub-affine.nii.gz          HO subc atlas in subject space (affine)
-echo Transform atlas ROIs
-HO="${FSLDIR}"/data/atlases/HarvardOxford/HarvardOxford-sub-prob-1mm.nii.gz
-convert_xfm -omat mni-to-t1-affine.mat -inverse t1-to-mni-affine.mat
-flirt \
-    -in "${HO}" \
-    -ref t1 \
-    -init mni-to-t1-affine.mat \
-    -applyxfm \
-    -out HOsub-affine 
-
-# Same but full nonlinear warp
-#   mni-to-t1-warpcoef.nii.gz    Def field from atlas to subject
-#   HOsub-warp.nii.gz            HO subc atlas in subject space (warped)
-invwarp --ref=t1 --warp=t1-to-mni-warpcoef --out=mni-to-t1-warpcoef
-applywarp \
-    --in="${HO}" \
-    --ref=t1 \
-    --warp=mni-to-t1-warpcoef \
-    --interp=trilinear \
-    --out=HOsub-warp
-
-# Resample subject space HO images to the FS hi-res hippocampal FOV
-#   lh.HOsub-warp.nii.gz     HO subc atlases in hi-res FOVs
-#   rh.HOsub-warp.nii.gz
-#   lh.HOsub-affine.nii.gz
-#   rh.HOsub-affine.nii.gz
-echo Resample to hi-res space 1
-for h in lh rh; do
-    for w in affine warp; do
-        flirt \
-            -in HOsub-${w} \
-            -ref ${h}.hippoAmygLabels-T1.v21 \
-            -usesqform \
-            -applyxfm \
-            -out ${h}.HOsub-${w}
-    done
-done
-
-# Get atlas hippocampus masks into hi-res subject space. These are the total
-# volume considered when computing HPF. Volumes 8/18 are L/R hippocampus.
-# pthresh is the probability to threshold at to create the masks.
-#   lh.HOhipp-warp.nii.gz          HO hipp prob maps in subject space
-#   rh.HOhipp-warp.nii.gz
-#   lh.HOhipp-affine.nii.gz
-#   rh.HOhipp-affine.nii.gz
-#   lh.HOhipp-mask-warp.nii.gz     HO hipp thresholded masks in subject space
-#   rh.HOhipp-mask-warp.nii.gz
-#   lh.HOhipp-mask-affine.nii.gz
-#   rh.HOhipp-mask-affine.nii.gz
-echo Resample to hi-res space 2
-for h in lh rh; do
-    if [[ ${h} == lh ]]; then v=8; fi
-    if [[ ${h} == rh ]]; then v=18; fi
-    for w in affine warp; do
-        fslroi ${h}.HOsub-${w} ${h}.HOhipp-${w} ${v} 1
-        fslmaths ${h}.HOhipp-${w} -thr ${pthresh} -bin ${h}.HOhipp-mask-${w}
-    done
-done
-
-# Get subject hippocampus from FS, in hi-res subject space. Values >1000
-# are the amygdala
-#   lh.hipp-mask.nii.gz   Subject hippocampus
-#   rh.hipp-mask.nii.gz
-echo Hippocampus mask
-for h in lh rh; do
-    fslmaths ${h}.hippoAmygLabels-T1.v21 -uthr 1000 -bin ${h}.hipp-mask
-done
+exit 0
 
 # Mask subject hippocampus by atlas mask. HPF is computed only within
 # the atlas mask.
