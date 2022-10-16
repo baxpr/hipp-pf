@@ -14,7 +14,7 @@ cd "${out_dir}"
 #   hipposubfields.lh.T1.v21.stats      FS hippocampal volumes
 #   hipposubfields.rh.T1.v21.stats
 #fslreorient2std "${t1_niigz}" t1
-cp "${t1_niigz}" t1.nii.gz
+fslreorient2std "${t1_niigz}" t1.nii.gz
 cp "${fs_subjdir}"/stats/hipposubfields.?h.T1.v21.stats .
 for h in lh rh; do
     mri_convert "${fs_subjdir}/mri/${h}.hippoAmygLabels-T1.v21.mgz" \
