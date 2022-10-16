@@ -21,7 +21,15 @@ for h in lh rh; do
         ${h}.hippoAmygLabels-T1.v21.nii.gz
 done
 mri_convert "${fs_subjdir}/mri/brainmask.mgz" brainmask.nii.gz
+
+# Convert FS brainmask for FSL
 fslmaths brainmask -bin -dilM -dilM brainmask_dil
+flirt \
+    -in brainmask_dil \
+    -ref t1 \
+    -usesqform \
+    -applyxfm \
+    -out rbrainmask_dil 
 
 # Affine registration of T1 to atlas
 #   wt1-affine.nii.gz       T1 affine transformed to atlas space
@@ -30,7 +38,7 @@ echo Affine registration
 flirt \
     -in t1 \
     -ref "${FSLDIR}"/data/standard/MNI152_T1_2mm \
-    -inweight brainmask_dil \
+    -inweight rbrainmask_dil \
     -refweight "${FSLDIR}"/data/standard/MNI152_T1_2mm_brain_mask_dil \
     -usesqform \
     -out wt1-affine \
