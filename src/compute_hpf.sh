@@ -13,12 +13,15 @@ cd "${out_dir}"
 #   rh.hippoAmygLabels-T1.v21.mgz
 #   hipposubfields.lh.T1.v21.stats      FS hippocampal volumes
 #   hipposubfields.rh.T1.v21.stats
-fslreorient2std "${t1_niigz}" t1
+#fslreorient2std "${t1_niigz}" t1
+cp "${t1_niigz}" t1.nii.gz
 cp "${fs_subjdir}"/stats/hipposubfields.?h.T1.v21.stats .
 for h in lh rh; do
     mri_convert "${fs_subjdir}/mri/${h}.hippoAmygLabels-T1.v21.mgz" \
         ${h}.hippoAmygLabels-T1.v21.nii.gz
 done
+mri_convert "${fs_subjdir}/mri/brainmask.mgz" brainmask.nii.gz
+fslmaths brainmask -bin -dilM -dilM brainmask_dil
 
 # Affine registration of T1 to atlas
 #   wt1-affine.nii.gz       T1 affine transformed to atlas space
@@ -27,6 +30,7 @@ echo Affine registration
 flirt \
     -in t1 \
     -ref "${FSLDIR}"/data/standard/MNI152_T1_2mm \
+    -inweight brainmask_dil \
     -refweight "${FSLDIR}"/data/standard/MNI152_T1_2mm_brain_mask_dil \
     -usesqform \
     -out wt1-affine \
