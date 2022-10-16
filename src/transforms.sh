@@ -3,9 +3,6 @@
 # Transform the H-O hippocampus prob maps to the hi-res T1 space using all three
 # available transforms (whole brain affine, hippocampus-specific affine, warp).
 
-cd "${out_dir}"
-
-
 ##########################################################################
 ## Compute inverse transforms
 echo Compute inverse transforms

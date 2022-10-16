@@ -6,7 +6,7 @@
 export t1_niigz=/INPUTS/t1.nii.gz
 export fs_subjdir=/INPUTS/SUBJECT
 export out_dir=/OUTPUTS
-export pthresh=25
+export pthresh=50
 
 # Parse input options
 while [[ $# -gt 0 ]]; do
@@ -20,7 +20,14 @@ while [[ $# -gt 0 ]]; do
     esac
 done
 
-# Run
+cd "${out_dir}"
+
+prepfiles.sh
+
+registrations.sh
+
+transforms.sh
+
 compute_hpf.sh
 
 make_pdf.sh

@@ -1,7 +1,5 @@
 #!/usr/bin/env bash
 
-cd "${out_dir}"
-
 # T1
 #   wt1-affine.nii.gz            T1 affine transformed to atlas space
 #   t1-to-mni-affine.mat         FSL format affine transformation matrix
