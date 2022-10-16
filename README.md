@@ -5,7 +5,7 @@ A review of the general approach is Ardekani 2019. This FSL-based pipeline uses 
 
 ## Procedure
 
-- Initial 12-parameter affine registration of T1 image to MNI atlas.
+- Initial 12-parameter affine registration of T1 image to MNI atlas. The freesurfer brainmask in subject space and the MNI brainmask in atlas space, both dilated, are used to improve accuracy.
 
 - Additional nonlinear registration (warp) to the atlas following default FNIRT 'T1_2_MNI152_2mm' schedule file.
 
