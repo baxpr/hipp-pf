@@ -51,7 +51,7 @@ for h in lh rh; do
     flirt \
         -in ${h}.HarvardOxford-sub-prob-hipp \
         -ref t1 \
-        -init ${h}.mni-to-t1-faffine.mat \
+        -init ${h}.mni-to-t1-haffine.mat \
         -applyxfm \
         -out ${h}.prob-HOhipp-haffine
 done
