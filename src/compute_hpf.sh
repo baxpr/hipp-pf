@@ -202,23 +202,54 @@ HERE
 exit 0
 
 
-
+# FIXME add back the hippo-specific and try on small-hipp test case
 ########################################################################
 # scritch-scratch for hippocampus-specific affine transforms below here
 
-# Hippocampus-specific affine reg
-HO="${FSLDIR}/data/atlases/HarvardOxford/HarvardOxford-sub-prob-2mm"
+# Subject hippo-amyg registration mask from FS
+#   lh.hippamyg-regmask.nii.gz   Subject hippocampus+amygdala, dilated
+#   rh.hippamyg-regmask.nii.gz
+echo Hippocampus-amygdala registration mask
+for h in lh rh; do
+    flirt \
+        -in ${h}.hippoAmygLabels-T1.v21 \
+        -ref t1 \
+        -usesqform \
+        -applyxfm \
+        -interp nearestneighbour \
+        -out ${h}.tmp
+    fslmaths ${h}.tmp -bin -dilM -dilM ${h}.hippamyg-regmask
+    rm tmp.nii.gz
+done
+
+# Atlas hipp-amyg registration mask from HO
+HO="${FSLDIR}/data/atlases/HarvardOxford/HarvardOxford-sub-prob-1mm"
 fslroi "${HO}" lh.HO-hipp 8 1
 fslroi "${HO}" lh.HO-amyg 9 1
 fslroi "${HO}" rh.HO-hipp 18 1
 fslroi "${HO}" rh.HO-amyg 19 1
-fslmaths lh.HO-hipp -add lh.HO-amyg -thr 10 -bin lh.HO-hippamyg
-fslmaths rh.HO-hipp -add rh.HO-amyg -thr 10 -bin rh.HO-hippamyg
+fslmaths lh.HO-hipp -add lh.HO-amyg -thr 0 -bin lh.HOhippamyg-regmask
+fslmaths rh.HO-hipp -add rh.HO-amyg -thr 0 -bin rh.HOhippamyg-regmask
+rm {lh,rh}.HO-{hipp,amyg}.nii.gz
 
+# Hippocampus-specific affine registrations
 for h in lh rh; do
-    flirt -in t1 -ref "${FSLDIR}"/data/standard/MNI152_T1_2mm -init t1-to-mni-affine.mat \
-        -out wt1-${h}-haffine -omat t1-to-mni-${h}-haffine.mat -refweight ${h}.HO-hippamyg
+    flirt \
+        -in t1 \
+        -ref "${FSLDIR}"/data/standard/MNI152_T1_1mm \
+        -inweight ${h}.hippamyg-regmask \
+        -refweight ${h}.HOhippamyg-regmask \
+        -init t1-to-mni-affine.mat \
+        -searchrx -10 10 -searchry -10 10 -searchrz -10 10 \
+        -out ${h}.wt1-haffine \
+        -omat ${h}.t1-to-mni-haffine.mat
 done
+
+# Transform the atlas HO prob maps back to subject space
+for h in lh rh; do
+    convert_xfm -omat ${h}.mni-to-t1-haffine.mat -inverse ${h}.t1-to-mni-haffine.mat
+done
+# FIXME we are here. Start with HOsub, inverse transform, resample to hires, threshold at mthr
 
 
 # Hipp-specific affine transform of HO to subject space
