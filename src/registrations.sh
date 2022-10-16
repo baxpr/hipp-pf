@@ -30,7 +30,7 @@ for h in lh rh; do
         -interp nearestneighbour \
         -out ${h}.tmp
     fslmaths ${h}.tmp -bin -dilM -dilM ${h}.hippamyg-regmask
-    rm tmp.nii.gz
+    rm ${h}.tmp.nii.gz
 done
 
 # Atlas hipp-amyg registration mask from Harvard-Oxford to use as
