@@ -67,7 +67,7 @@ convert \
 for w in affine warp haffine; do
     convert \
         -size 2550x3300 xc:white \
-        -gravity center \( page-affine.png -resize 2200x2200 \) -composite \
+        -gravity center \( page-${w}.png -resize 2200x2200 \) -composite \
         -gravity North -pointsize 48 -annotate +0+300 \
             "Hippocampus parenchymal fraction, ${w} transform" \
         -gravity South -pointsize 48 -annotate +0+350 \
