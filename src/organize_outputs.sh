@@ -1,78 +1,65 @@
 #!/usr/bin/env bash
 
-# T1
-#   wt1-affine.nii.gz            T1 affine transformed to atlas space
-#   t1-to-mni-affine.mat         FSL format affine transformation matrix
-#   mni-to-t1-affine.mat         Affine trans mtx from atlas to subject
-#   wt1-warp.nii.gz              T1 warped to atlas space
-#   t1-to-mni-warpcoef.nii.gz    FSL format deformation field
-#   t1_to_MNI152_T1_2mm.log      Registration log
-#   mni-to-t1-warpcoef.nii.gz    Def field from atlas to subject
-mkdir T1
+# AFFINE
+# t1-to-mni-affine.mat                 Affine transform subject<>atlas
+# mni-to-t1-affine.mat
+# wt1-affine.nii.gz                    Low res T1 in atlas space
+# lh.HOhipp-mask-affine.nii.gz         Atlas mask transformed to subject space
+# rh.HOhipp-mask-affine.nii.gz
+# lh.hipp-fsseg-mask-affine.nii.gz     Atlas mask masked by FS hippocampus
+# rh.hipp-fsseg-mask-affine.nii.gz
+# lh.hipp-tissue-mask-affine.nii.gz    Atlas mask masked by tissue intensity threshold
+# rh.hipp-tissue-mask-affine.nii.gz
+mkdir AFFINE
 mv \
-    wt1-affine.nii.gz \
     t1-to-mni-affine.mat \
     mni-to-t1-affine.mat \
-    wt1-warp.nii.gz \
-    t1-to-mni-warpcoef.nii.gz \
-    t1_to_MNI152_T1_2mm.log \
-    mni-to-t1-warpcoef.nii.gz \
-    T1
-
-# HO_HIPP
-#   lh.HOhipp-mask-warp.nii.gz     HO hipp thresholded masks in subject space
-#   rh.HOhipp-mask-warp.nii.gz
-#   lh.HOhipp-mask-affine.nii.gz
-#   rh.HOhipp-mask-affine.nii.gz
-mkdir HO_HIPP
-mv \
-    lh.HOhipp-mask-warp.nii.gz \
-    rh.HOhipp-mask-warp.nii.gz \
+    wt1-affine.nii.gz \
     lh.HOhipp-mask-affine.nii.gz \
     rh.HOhipp-mask-affine.nii.gz \
-    HO_HIPP
+    lh.hipp-fsseg-mask-affine.nii.gz \
+    rh.hipp-fsseg-mask-affine.nii.gz \
+    lh.hipp-tissue-mask-affine.nii.gz \
+    rh.hipp-tissue-mask-affine.nii.gz \
+    AFFINE
 
-# SUBJ_HIPP
-#   lh.hipp-mask.nii.gz   Subject hippocampus
-#   rh.hipp-mask.nii.gz
-mkdir SUBJ_HIPP
+# WARP - filenames as for AFFINE
+mkdir WARP
 mv \
-    lh.hipp-mask.nii.gz \
-    rh.hipp-mask.nii.gz \
-    SUBJ_HIPP
+    t1_to_MNI152_T1_2mm.log \
+    mni-to-t1-warpcoef.nii.gz \
+    t1-to-mni-warpcoef.nii.gz \
+    wt1-warp.nii.gz \
+    lh.HOhipp-mask-warp.nii.gz \
+    rh.HOhipp-mask-warp.nii.gz \
+    lh.hipp-fsseg-mask-warp.nii.gz \
+    rh.hipp-fsseg-mask-warp.nii.gz \
+    lh.hipp-tissue-mask-warp.nii.gz \
+    rh.hipp-tissue-mask-warp.nii.gz \
+    WARP
 
-# SUBJ_HIPP_MASKED
-#   lh.hipp-HOmask-warp.nii.gz   HO-masked subject hippocampus
-#   rh.hipp-HOmask-warp.nii.gz
-#   lh.hipp-HOmask-affine.nii.gz
-#   rh.hipp-HOmask-affine.nii.gz
-mkdir SUBJ_HIPP_MASKED
+# HAFFINE - as above
+mkdir HAFFINE
 mv \
-    lh.hipp-HOmask-warp.nii.gz \
-    rh.hipp-HOmask-warp.nii.gz \
-    lh.hipp-HOmask-affine.nii.gz \
-    rh.hipp-HOmask-affine.nii.gz \
-    SUBJ_HIPP_MASKED
-    
+    lh.t1-to-mni-haffine.mat \
+    rh.t1-to-mni-haffine.mat \
+    lh.mni-to-t1-haffine.mat \
+    rh.mni-to-t1-haffine.mat \
+    lh.wt1-haffine.nii.gz \
+    rh.wt1-haffine.nii.gz \
+    lh.HOhipp-mask-haffine.nii.gz \
+    rh.HOhipp-mask-haffine.nii.gz \
+    lh.hipp-fsseg-mask-haffine.nii.gz \
+    rh.hipp-fsseg-mask-haffine.nii.gz \
+    lh.hipp-tissue-mask-haffine.nii.gz \
+    rh.hipp-tissue-mask-haffine.nii.gz \
+    HAFFINE
+
 # T1_HIRES
-#   lh.t1                     T1 resampled to the hi-res FOVs
-#   rh.t1
+# T1 resampled to the hi-res partial FOVs
 mkdir T1_HIRES
 mv \
     lh.t1.nii.gz \
     rh.t1.nii.gz \
     T1_HIRES
-
-# SUBJ_HIPP_GM
-#   lh.hipp-gm-warp.nii.gz    Gray matter masks within the HO-masked hippocampus
-#   rh.hipp-gm-warp.nii.gz
-#   lh.hipp-gm-affine.nii.gz
-#   rh.hipp-gm-affine.nii.gz
-mkdir SUBJ_HIPP_GM
-mv \
-    lh.hipp-gm-warp.nii.gz \
-    rh.hipp-gm-warp.nii.gz \
-    lh.hipp-gm-affine.nii.gz \
-    rh.hipp-gm-affine.nii.gz \
-    SUBJ_HIPP_GM
 
