@@ -63,10 +63,19 @@ for h in lh rh; do
     eval whh_${h}=${varr[3]}
 done
 
-# Create output csv
-#   hippocampus_hpf.csv    HPF values and FS vols in CSV format
+# Create output csvs
 cat > hippocampus_hpf.csv <<HERE
-Hemisphere,HPF_Tissue_Affine,HPF_Tissue_Haffine,HPF_Tissue_Warp,HPF_FSseg_Affine,HPF_FSseg_Haffine,HPF_FSseg_Warp,Whole_hippocampal_body,Whole_hippocampal_head
-left,${hpf_tissue_lh_affine},${hpf_tissue_lh_haffine},${hpf_tissue_lh_warp},${hpf_fsseg_lh_affine},${hpf_fsseg_lh_haffine},${hpf_fsseg_lh_warp},${whb_lh},${whh_lh}
-right,${hpf_tissue_rh_affine},${hpf_tissue_rh_haffine},${hpf_tissue_rh_warp},${hpf_fsseg_rh_affine},${hpf_fsseg_rh_haffine},${hpf_fsseg_rh_warp},${whb_rh},${whh_rh}
+Hemisphere,Transform,HPF_Tissue,HPF_FSseg
+left,brain_affine,${hpf_tissue_lh_affine},${hpf_fsseg_lh_affine}
+right,brain_affine,${hpf_tissue_rh_affine},${hpf_fsseg_rh_affine}
+left,brain_warp,${hpf_tissue_lh_warp},${hpf_fsseg_lh_warp}
+right,brain_warp,${hpf_tissue_rh_warp},${hpf_fsseg_rh_warp}
+left,hippamyg_affine,${hpf_tissue_lh_haffine},${hpf_fsseg_lh_haffine}
+right,hippamyg_affine,${hpf_tissue_rh_haffine},${hpf_fsseg_rh_haffine}
+HERE
+
+cat > hippocampus_vol.csv <<HERE
+Hemisphere,Whole_hippocampal_body,Whole_hippocampal_head
+left,${whb_lh},${whh_lh}
+right,${whb_rh},${whh_rh}
 HERE

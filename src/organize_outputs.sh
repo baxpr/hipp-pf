@@ -4,6 +4,7 @@
 # t1-to-mni-affine.mat                 Affine transform subject<>atlas
 # mni-to-t1-affine.mat
 # wt1-affine.nii.gz                    Low res T1 in atlas space
+# brain-regmask.nii.gz                 Registration mask for T1
 # lh.HOhipp-mask-affine.nii.gz         Atlas mask transformed to subject space
 # rh.HOhipp-mask-affine.nii.gz
 # lh.hipp-fsseg-mask-affine.nii.gz     Atlas mask masked by FS hippocampus
@@ -15,6 +16,7 @@ mv \
     t1-to-mni-affine.mat \
     mni-to-t1-affine.mat \
     wt1-affine.nii.gz \
+    brain-regmask.nii.gz \
     lh.HOhipp-mask-affine.nii.gz \
     rh.HOhipp-mask-affine.nii.gz \
     lh.hipp-fsseg-mask-affine.nii.gz \
@@ -47,6 +49,10 @@ mv \
     rh.mni-to-t1-haffine.mat \
     lh.wt1-haffine.nii.gz \
     rh.wt1-haffine.nii.gz \
+    lh.HOhippamyg-regmask.nii.gz \
+    lh.hippamyg-regmask.nii.gz \
+    rh.HOhippamyg-regmask.nii.gz \
+    rh.hippamyg-regmask.nii.gz \
     lh.HOhipp-mask-haffine.nii.gz \
     rh.HOhipp-mask-haffine.nii.gz \
     lh.hipp-fsseg-mask-haffine.nii.gz \
@@ -63,3 +69,9 @@ mv \
     rh.t1.nii.gz \
     T1_HIRES
 
+# STATS
+mkdir STATS
+mv \
+    hippocampus_hpf.csv	\
+    hippocampus_vol.csv \
+    STATS
