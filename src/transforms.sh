@@ -8,9 +8,6 @@
 echo Compute inverse transforms
 convert_xfm -omat mni-to-t1-affine.mat -inverse t1-to-mni-affine.mat
 invwarp --ref=t1 --warp=t1-to-mni-warpcoef --out=mni-to-t1-warpcoef
-for h in lh rh; do
-    convert_xfm -omat ${h}.mni-to-t1-haffine.mat -inverse ${h}.t1-to-mni-haffine.mat
-done
 
 
 ##########################################################################
@@ -23,53 +20,52 @@ fslroi "${FSLDIR}"/data/atlases/HarvardOxford/HarvardOxford-sub-prob-1mm \
 fslroi "${FSLDIR}"/data/atlases/HarvardOxford/HarvardOxford-sub-prob-1mm \
     rh.HarvardOxford-sub-prob-hipp 18 1
 
-# Whole brain affine
+# Split the atlas hippocampus into anterior and posterior segments following 
+#
+# Woolard AA, Heckers S. Anatomical and functional correlates of human hippocampal 
+# volume asymmetry. Psychiatry Res. 2012 Jan 30;201(1):48-53. 
+# doi: 10.1016/j.pscychresns.2011.07.016. PMID: 22285719; PMCID: PMC3289761.
+# https://www.ncbi.nlm.nih.gov/pmc/articles/PMC3289761/
+#
+# This is simply a coronal cut at y >= -20 mm, or j >= 106 in FSL 1mm atlas image
 for h in lh rh; do
-    flirt \
-        -in ${h}.HarvardOxford-sub-prob-hipp \
-        -ref t1 \
-        -init mni-to-t1-affine.mat \
-        -applyxfm \
-        -out ${h}.prob-HOhipp-affine
+    fslmaths \
+        ${h}.HarvardOxford-sub-prob-hipp \
+        -roi 0 -1 106 100 0 -1 0 -1 \
+        -thr ${pthresh} \
+        -bin \
+        ${h}a.HOhipp-mask
+    fslmaths \
+        ${h}.HarvardOxford-sub-prob-hipp \
+        -roi 0 -1 105 -100 0 -1 0 -1 \
+        -thr ${pthresh} \
+        -bin \
+        ${h}p.HOhipp-mask
 done
 
 # Warp
-for h in lh rh; do
+for h in lha lhp rha rhp; do
     applywarp \
-        --in=${h}.HarvardOxford-sub-prob-hipp \
+        --in=${h}.HOhipp-mask \
         --ref=t1 \
         --warp=mni-to-t1-warpcoef \
-        --interp=trilinear \
-        --out=${h}.prob-HOhipp-warp
-done
-
-# Hippocampus-specific affine
-for h in lh rh; do
-    flirt \
-        -in ${h}.HarvardOxford-sub-prob-hipp \
-        -ref t1 \
-        -init ${h}.mni-to-t1-haffine.mat \
-        -applyxfm \
-        -out ${h}.prob-HOhipp-haffine
+        --interp=nn \
+        --out=${h}.HOhipp-mask-warp-lores
 done
 
 
 ##########################################################################
-## Resample prob maps to T1 hi-res space and threshold
+## Resample atlas ROIs to T1 hi-res space
 echo Resample to hi-res space
 for h in lh rh; do
-    for w in affine warp haffine; do
+    for ap in a p; do
         flirt \
-            -in ${h}.prob-HOhipp-${w} \
+            -in ${h}${ap}.HOhipp-mask-warp-lores \
             -ref ${h}.hippoAmygLabels-T1.v21 \
             -usesqform \
             -applyxfm \
-            -out ${h}.prob-HOhipp-hires-${w}
-        fslmaths \
-            ${h}.prob-HOhipp-hires-${w} \
-            -thr ${pthresh} \
-            -bin \
-            ${h}.HOhipp-mask-${w}
+            -interp nearestneighbour \
+            -out ${h}${ap}.HOhipp-mask-warp
     done
 done
 

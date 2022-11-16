@@ -12,30 +12,17 @@ fsleyes render -of reg-mni.png -sz 300 900 \
     "${FSLDIR}"/data/standard/MNI152_T1_2mm -ot volume \
     "${FSLDIR}"/data/standard/MNI152_T1_2mm_brain_mask -ot mask -mc 0.3 0.5 0.8 -o -w3
 
-# Hippocampus regions. Red=subject, blue=atlas
-for w in affine warp haffine; do
-    for h in lh rh; do
-        com=$(fslstats ${h}.hipp-mask -c)
-        fsleyes render -of ${h}-hipp-${w}.png -sz 600 600 \
-            --scene ortho --worldLoc $com --displaySpace world \
-            --hideCursor --hideLabels --hidey --hidez \
-            ${h}.t1 -ot volume -dr 0 95% \
-            ${h}.hipp-mask -ot mask -mc 0.9 0.3 0.3 -o -w 3 \
-            ${h}.HOhipp-mask-${w} -ot mask -mc 0.3 0.5 0.8 -o -w 3
-    done
-done
-
 # Tissue within the atlas mask
-for w in affine warp haffine; do
-    for h in lh rh; do
-        com=$(fslstats ${h}.hipp-mask -c)
-        fsleyes render -of ${h}-tissue-${w}.png -sz 600 600 \
-            --scene ortho --worldLoc $com --displaySpace world \
-            --hideCursor --hideLabels --hidey --hidez \
-            ${h}.t1 -ot volume -dr 0 95% \
-            ${h}.hipp-tissue-mask-${w} -ot mask -mc 0.9 0.3 0.3 -w 3 -a 30 \
-            ${h}.HOhipp-mask-${w} -ot mask -mc 0.3 0.5 0.8 -o -w 3
-    done
+for h in lh rh; do
+    com=$(fslstats ${h}.hipp-mask -c)
+    fsleyes render -of ${h}-tissue-warp.png -sz 600 600 \
+        --scene ortho --worldLoc $com --displaySpace world \
+        --hideCursor --hideLabels --hidey --hidez \
+        ${h}.t1 -ot volume -dr 0 95% \
+        ${h}a.hipp-tissue-mask-warp -ot mask -mc 0.3 0.9 0.3 -w 3 -a 40 \
+        ${h}a.HOhipp-mask-warp -ot mask -mc 0.9 0.3 0.3 -o -w 3 \
+        ${h}p.hipp-tissue-mask-warp -ot mask -mc 0.3 0.9 0.3 -w 3 -a 40 \
+        ${h}p.HOhipp-mask-warp -ot mask -mc 0.3 0.5 0.8 -o -w 3
 done
 
 # Combine into single PDF
@@ -45,14 +32,11 @@ montage \
     -trim -tile 2x1 -quality 100 -background black -gravity center \
     -border 20 -bordercolor black page-reg.png
 
-for w in affine warp haffine; do
-    montage \
-        -mode concatenate \
-        lh-hipp-${w}.png rh-hipp-${w}.png \
-        lh-tissue-${w}.png rh-tissue-${w}.png \
-        -trim -tile 2x2 -quality 100 -background black -gravity center \
-        -border 20 -bordercolor black page-${w}.png
-done
+montage \
+    -mode concatenate \
+    lh-tissue-warp.png rh-tissue-warp.png \
+    -trim -tile 2x1 -quality 100 -background black -gravity center \
+    -border 20 -bordercolor black page-warp.png
 
 # 8.5 x 11 in is 2550x3300 at 300 dpi
 convert \
@@ -64,16 +48,14 @@ convert \
         "Left Subject\nRight: Atlas\nBlue: Atlas brain mask" \
     page-reg.pdf
 
-for w in affine warp haffine; do
-    convert \
-        -size 2550x3300 xc:white \
-        -gravity center \( page-${w}.png -resize 2200x2200 \) -composite \
-        -gravity North -pointsize 48 -annotate +0+300 \
-            "Hippocampus parenchymal fraction, ${w} transform" \
-        -gravity South -pointsize 48 -annotate +0+350 \
-            "Blue: Atlas\nTop red: Subject hippocampus\nBottom red: Subject non-CSF" \
-        page-${w}.pdf
-done
+convert \
+    -size 2550x3300 xc:white \
+    -gravity center \( page-warp.png -resize 2200x2200 \) -composite \
+    -gravity North -pointsize 48 -annotate +0+300 \
+        "Hippocampus parenchymal fraction, warp transform" \
+    -gravity South -pointsize 48 -annotate +0+350 \
+        "Blue/red: Atlas\nGreen: Subject parenchyma (non-CSF)" \
+    page-warp.pdf
 
-convert page-reg.pdf page-warp.pdf page-affine.pdf page-haffine.pdf hipp-pf.pdf
+convert page-reg.pdf page-warp.pdf hipp-pf.pdf
 

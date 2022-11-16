@@ -19,15 +19,8 @@ tthr=$(echo "scale=5; (${tthr_lh}+${tthr_rh})/2" | bc)
 
 # Mask the atlas hippocampus by tissue threshold to identify non-CSF
 for h in lh rh; do
-    for w in affine warp haffine; do
-        fslmaths ${h}.t1 -mas ${h}.HOhipp-mask-${w} -thr ${tthr} -bin ${h}.hipp-tissue-mask-${w}
-    done
-done
-
-# Mask the Freesurfer seg by atlas hippocampus to identify gray matter
-for h in lh rh; do
-    for w in affine warp haffine; do
-        fslmaths ${h}.hipp-mask -mas ${h}.HOhipp-mask-${w} -bin ${h}.hipp-fsseg-mask-${w}
+    for ap in a p; do
+        fslmaths ${h}.t1 -mas ${h}${ap}.HOhipp-mask-warp -thr ${tthr} -bin ${h}${ap}.hipp-tissue-mask-warp
     done
 done
 
@@ -35,47 +28,18 @@ done
 # atlas hippocampus mask
 echo HPF computation
 for h in lh rh; do
-    for w in affine warp haffine; do
-        num=$(fslstats ${h}.hipp-tissue-mask-${w} -V | cut -f 2 -d ' ')
-        denom=$(fslstats ${h}.HOhipp-mask-${w} -V | cut -f 2 -d ' ')
-        eval hpf_tissue_${h}_${w}=$(echo "scale=2; 100 * ${num} / ${denom}" | bc)
+    for ap in a p; do
+        num=$(fslstats ${h}${ap}.hipp-tissue-mask-warp -V | cut -f 2 -d ' ')
+        denom=$(fslstats ${h}${ap}.HOhipp-mask-warp -V | cut -f 2 -d ' ')
+        eval hpf_tissue_${h}${ap}_warp=$(echo "scale=2; 100 * ${num} / ${denom}" | bc)
     done
-done
-
-# Compute HPF instead as Freesurfer-segmented gray matter within the atlas
-# hippocampus mask
-for h in lh rh; do
-    for w in affine warp haffine; do
-        num=$(fslstats ${h}.hipp-fsseg-mask-${w} -V | cut -f 2 -d ' ')
-        denom=$(fslstats ${h}.HOhipp-mask-${w} -V | cut -f 2 -d ' ')
-        eval hpf_fsseg_${h}_${w}=$(echo "scale=2; 100 * ${num} / ${denom}" | bc)
-    done
-done
-
-# Snag some volume measurements from FS for convenience
-for h in lh rh; do
-    vstr=$(grep Whole_hippocampal_body hipposubfields.${h}.T1.v21.stats)
-    varr=(${vstr// / })
-    eval whb_${h}=${varr[3]}
-
-    vstr=$(grep Whole_hippocampal_head hipposubfields.${h}.T1.v21.stats)
-    varr=(${vstr// / })
-    eval whh_${h}=${varr[3]}
 done
 
 # Create output csvs
 cat > hippocampus_hpf.csv <<HERE
-Hemisphere,Transform,HPF_Tissue,HPF_FSseg
-left,brain_affine,${hpf_tissue_lh_affine},${hpf_fsseg_lh_affine}
-right,brain_affine,${hpf_tissue_rh_affine},${hpf_fsseg_rh_affine}
-left,brain_warp,${hpf_tissue_lh_warp},${hpf_fsseg_lh_warp}
-right,brain_warp,${hpf_tissue_rh_warp},${hpf_fsseg_rh_warp}
-left,hippamyg_affine,${hpf_tissue_lh_haffine},${hpf_fsseg_lh_haffine}
-right,hippamyg_affine,${hpf_tissue_rh_haffine},${hpf_fsseg_rh_haffine}
-HERE
-
-cat > hippocampus_vol.csv <<HERE
-Hemisphere,Whole_hippocampal_body,Whole_hippocampal_head
-left,${whb_lh},${whh_lh}
-right,${whb_rh},${whh_rh}
+Hemisphere,AP,HPF
+left,anterior,${hpf_tissue_lha_warp}
+left,posterior,${hpf_tissue_lhp_warp}
+right,anterior,${hpf_tissue_rha_warp}
+right,posterior,${hpf_tissue_rhp_warp}
 HERE
